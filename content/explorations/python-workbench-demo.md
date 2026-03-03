@@ -58,8 +58,6 @@ for s in data['skills']:
 
 Para embeds de YouTube u otros, usa el div `.video-embed`:
 
-```html
 <div class="video-embed">
   <iframe src="https://www.youtube.com/embed/VIDEO_ID" allowfullscreen></iframe>
 </div>
-```
