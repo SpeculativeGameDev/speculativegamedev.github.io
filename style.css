@@ -520,3 +520,38 @@ pre code {
   .side-panel { width: 280px; }
   .main-content { padding-top: 6rem; }
 }
+
+/* ============================================
+   LOGSEQ ELEMENTS
+   ============================================ */
+.logseq-embed-notice {
+  background: var(--grey);
+  border-left: 3px solid var(--grey-light);
+  padding: 0.6rem 1rem;
+  margin: 1.5em 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.logseq-embed-notice a {
+  color: var(--yellow);
+}
+
+.todo {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: var(--grey-mid);
+  color: var(--text-muted);
+  padding: 0.15em 0.4em;
+  vertical-align: middle;
+}
+
+.todo.done {
+  background: transparent;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
