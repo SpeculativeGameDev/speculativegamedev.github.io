@@ -1,3 +1,9 @@
+---
+title: Python Workbench — Demo
+date: 2025-03
+section: Explorations
+---
+
 # Python Workbench — Demo
 
 Un ejemplo de workbench interactivo con Pyodide. El código Python corre directamente en el browser, sin servidor.
