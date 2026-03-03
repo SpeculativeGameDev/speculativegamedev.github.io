@@ -4,12 +4,6 @@ date: 2025-03
 section: Explorations
 ---
 
----
-title: Python Workbench — Demo
-date: 2025-03
-section: Explorations
----
-
 Un ejemplo de workbench interactivo con Pyodide. El código Python corre directamente en el browser, sin servidor.
 
 ## Cómo funciona
