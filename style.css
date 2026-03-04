@@ -489,17 +489,6 @@ pre code {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   line-height: 1.6;
-  /* ensure there’s always a little breathing room below the sticky header
-     so the first line of code is never obscured when scrolling */
-  margin-top: 1.5rem;
-}
-
-/* on narrow viewports give even more space so the floating button doesn’t
-   feel cramped against the code */
-@media (max-width: 600px) {
-  .workbench-editor {
-    margin-top: 2.5rem;
-  }
 }
 
 .workbench-editor .CodeMirror {
