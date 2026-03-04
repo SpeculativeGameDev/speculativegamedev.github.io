@@ -560,7 +560,7 @@ async function initWorkbenches() {
         }
 
         btn.textContent = 'Running\u2026';
-        py.runPython('import sys, io\n_cap = io.StringIO()\nsys.stdout = _cap');
+        await py.runPythonAsync('import sys, io\n_cap = io.StringIO()\nsys.stdout = _cap');
         
         // Set up input field for Python input() function
         inputContainer.style.display = 'none';
@@ -578,7 +578,7 @@ async function initWorkbenches() {
         };
         
         // Replace the built-in input() with a version that uses the input container
-        py.runPython(`
+        await py.runPythonAsync(`
 import builtins
 import js
 import time
@@ -616,15 +616,15 @@ builtins.input = _workbench_input
         };
         
         try {
-          py.runPython(src);
-          const out = py.runPython('_cap.getvalue()');
+          await py.runPythonAsync(src);
+          const out = await py.runPythonAsync('_cap.getvalue()');
           output.textContent = out || '(no output)';
           output.className = 'workbench-output has-output';
         } catch (err) {
           output.textContent = err.message;
           output.className = 'workbench-output error';
         } finally {
-          py.runPython('sys.stdout = sys.__stdout__');
+          await py.runPythonAsync('sys.stdout = sys.__stdout__');
           inputContainer.style.display = 'none';
           inputField.onkeypress = null;
           window._showWorkbenchInput = null;
