@@ -387,6 +387,9 @@ async function loadCodeMirror() {
 /* ============================================
    CODEMIRROR WORKBENCHES
    ============================================ */
+// keep a global record of packages we've asked pyodide to load
+const pyodidePackagesLoaded = new Set();
+
 async function initWorkbenches() {
   const workbenches = document.querySelectorAll('.workbench');
   if (workbenches.length === 0) return; // No workbenches on this page
@@ -407,6 +410,8 @@ async function initWorkbenches() {
       const py = await getPyodide();
       console.debug('[site] preloading pyodide packages', [...pkgsToPreload]);
       await py.loadPackage([...pkgsToPreload]);
+      // record them so we don't reload later
+      pkgsToPreload.forEach(p => pyodidePackagesLoaded.add(p));
     } catch (e) {
       console.warn('pyodide package preload failed:', e);
       // continue; we'll still attempt to load on-demand later
@@ -476,10 +481,37 @@ async function initWorkbenches() {
 
       try {
         const py = await getPyodide();
+
+        // Detect imports in current editor content and load any newly
+        // referenced pyodide packages before executing the code.  This
+        // prevents the common case where a user adds `import pkg` and
+        // then immediately runs, causing an error because the package
+        // wasn't preloaded.
+        const src = editor.getValue();
+        const pkgs = extractPackages(src);
+        const toLoad = pkgs.filter(p => !pyodidePackagesLoaded.has(p));
+
+        if (toLoad.length > 0) {
+          output.textContent = 'Loading packages: ' + toLoad.join(', ');
+          try {
+            await py.loadPackage(toLoad);
+            toLoad.forEach(p => pyodidePackagesLoaded.add(p));
+          } catch (pkgErr) {
+            // If package loading fails, surface the error but still
+            // attempt to run the user's code (it may not need the
+            // failed package at runtime).
+            output.textContent = 'Package load error: ' + pkgErr.message;
+            output.className = 'workbench-output error';
+            btn.textContent = 'Run';
+            btn.disabled = false;
+            return;
+          }
+        }
+
         btn.textContent = 'Running\u2026';
         py.runPython('import sys, io\n_cap = io.StringIO()\nsys.stdout = _cap');
         try {
-          py.runPython(editor.getValue());
+          py.runPython(src);
           const out = py.runPython('_cap.getvalue()');
           output.textContent = out || '(no output)';
           output.className = 'workbench-output has-output';
