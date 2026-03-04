@@ -471,6 +471,37 @@ pre code {
     display: block;
 }
 
+/* CodeMirror editor container */
+.workbench-editor {
+  width: 100%;
+  border-top: 1px solid var(--grey-mid);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.workbench-editor .CodeMirror {
+  background: var(--grey) !important;
+  color: var(--text) !important;
+  height: auto !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.75rem !important;
+  line-height: 1.6 !important;
+}
+
+.workbench-editor .CodeMirror-linenumber {
+  color: var(--text-muted) !important;
+  background: var(--grey-mid) !important;
+}
+
+.workbench-editor .CodeMirror-cursor {
+  border-left-color: var(--yellow) !important;
+}
+
+.workbench-editor .CodeMirror-selected {
+  background: var(--grey-mid) !important;
+}
+
 .workbench-output {
   padding: 1rem;
   border-top: 1px solid var(--grey-mid);

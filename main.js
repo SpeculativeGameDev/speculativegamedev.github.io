@@ -303,21 +303,73 @@ async function getPyodide() {
 }
 
 /* ============================================
-   TEXTAREA AUTO-RESIZE
+   CODEMIRROR LAZY LOADER
    ============================================ */
-function autoResizeTextarea(ta) {
-  if (!ta) return;
-  ta.style.height = 'auto';
-  ta.style.height = ta.scrollHeight + 'px';
+let codeMirrorLoading = false;
+let codeMirrorCallbacks = [];
+
+async function loadCodeMirror() {
+  if (window.CodeMirror) return window.CodeMirror;
+  return new Promise((resolve, reject) => {
+    codeMirrorCallbacks.push({ resolve, reject });
+    if (codeMirrorLoading) return;
+    codeMirrorLoading = true;
+
+    // Load CSS
+    const cssLink = document.createElement('link');
+    cssLink.rel = 'stylesheet';
+    cssLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css';
+    cssLink.integrity = 'sha512-kPKCwnSzjrHdAdOCuhm2LDQNpujF8gd0D/HuY+8F3+EomH5OGiSHQnDPGQ69yEH0bQ+0jbVRRY0J+600vYSNPA==';
+    cssLink.crossOrigin = 'anonymous';
+    document.head.appendChild(cssLink);
+
+    const themeLink = document.createElement('link');
+    themeLink.rel = 'stylesheet';
+    themeLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css';
+    themeLink.integrity = 'sha512-3dX7gBZSHkFDvXLEeEr9i4hCp3bfCEKwSZuq3X+J9Gd3XO5c2xWQN9eULBvVWcLVFDfbVLLqFKPP0XTLOvwZA==';
+    themeLink.crossOrigin = 'anonymous';
+    document.head.appendChild(themeLink);
+
+    // Load core
+    const coreScript = document.createElement('script');
+    coreScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js';
+    coreScript.integrity = 'sha512-yIYRmFaPKPpk0rN20ymgV0Wgi9QNoGHdZMMle0oQWV8nEJDB6BA8m32tP3bM3dBs4W+l0J4W4F+hBQZ4I8QPuw==';
+    coreScript.crossOrigin = 'anonymous';
+    coreScript.onload = () => {
+      // Load Python mode
+      const pythonScript = document.createElement('script');
+      pythonScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js';
+      pythonScript.integrity = 'sha512-vUPjM19ZYJ0o7T2qD5zjg1wT0jPbBbbW6P5u6rA7lnvbaKMFNlK2DvRiQAqRruDigcDFSCXeSclDZFGx8vyPJg==';
+      pythonScript.crossOrigin = 'anonymous';
+      pythonScript.onload = () => {
+        codeMirrorCallbacks.forEach(cb => cb.resolve(window.CodeMirror));
+        codeMirrorCallbacks = [];
+      };
+      pythonScript.onerror = () => {
+        codeMirrorCallbacks.forEach(cb => cb.reject(new Error('Failed to load CodeMirror Python mode')));
+        codeMirrorCallbacks = [];
+      };
+      document.head.appendChild(pythonScript);
+    };
+    coreScript.onerror = () => {
+      codeMirrorCallbacks.forEach(cb => cb.reject(new Error('Failed to load CodeMirror')));
+      codeMirrorCallbacks = [];
+    };
+    document.head.appendChild(coreScript);
+  });
 }
 
-function enableAutoResize(ta) {
-  autoResizeTextarea(ta); // ajustar al cargar
-  ta.addEventListener('input', () => autoResizeTextarea(ta));
-}
+/* ============================================
+   CODEMIRROR WORKBENCHES
+   ============================================ */
+async function initWorkbenches() {
+  const workbenches = document.querySelectorAll('.workbench');
+  if (workbenches.length === 0) return; // No workbenches on this page
 
-function initWorkbenches() {
-  document.querySelectorAll('.workbench').forEach(wb => {
+  // Load CodeMirror only if there are workbenches
+  const CodeMirror = await loadCodeMirror();
+
+  workbenches.forEach(wb => {
     if (wb.dataset.initialized) return;
     wb.dataset.initialized = 'true';
 
@@ -326,7 +378,48 @@ function initWorkbenches() {
     const output = wb.querySelector('.workbench-output');
     if (!btn || !code || !output) return;
 
-    enableAutoResize(code);
+    // Save the original textarea content
+    const initialCode = code.value || '';
+
+    // Create a container for CodeMirror and replace the textarea
+    const cmContainer = document.createElement('div');
+    cmContainer.className = 'workbench-editor';
+    code.parentNode.replaceChild(cmContainer, code);
+
+    // Initialize CodeMirror with Tab support for indentation
+    const editor = CodeMirror(cmContainer, {
+      value: initialCode,
+      mode: 'python',
+      theme: 'dracula',
+      lineNumbers: true,
+      indentUnit: 4,
+      indentWithTabs: false,
+      tabSize: 4,
+      lineWrapping: true,
+      extraKeys: {
+        'Tab': (cm) => {
+          if (cm.somethingSelected()) {
+            cm.indentSelection('add');
+          } else {
+            cm.replaceSelection('    '); // 4 spaces for Python indent
+          }
+        },
+        'Shift-Tab': (cm) => {
+          cm.indentSelection('subtract');
+        }
+      }
+    });
+
+    // Auto-resize the editor based on content
+    function resizeEditor() {
+      const lines = editor.lineCount();
+      const height = Math.max(150, lines * 24 + 10); // 24px per line + padding
+      cmContainer.style.height = height + 'px';
+      editor.refresh();
+    }
+
+    editor.on('change', resizeEditor);
+    resizeEditor(); // Initial resize
 
     btn.addEventListener('click', async () => {
       btn.disabled = true;
@@ -339,7 +432,7 @@ function initWorkbenches() {
         btn.textContent = 'Running\u2026';
         py.runPython('import sys, io\n_cap = io.StringIO()\nsys.stdout = _cap');
         try {
-          py.runPython(code.value);
+          py.runPython(editor.getValue());
           const out = py.runPython('_cap.getvalue()');
           output.textContent = out || '(no output)';
           output.className = 'workbench-output has-output';
