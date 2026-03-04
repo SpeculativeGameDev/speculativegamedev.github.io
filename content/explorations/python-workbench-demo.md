@@ -165,8 +165,7 @@ async def main():
         print("No queda nadie para contar la historia.")
 
 if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+    await main()
   </textarea>
   <div class="workbench-output">Output will appear here…</div>
 </div>
