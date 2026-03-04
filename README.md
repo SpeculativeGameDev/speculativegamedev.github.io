@@ -36,6 +36,11 @@ The first `# H1` in the markdown becomes the page title. Everything else renders
 
 ## Workbenches (Python / Pyodide)
 
+Los workbenches incluyen un botón **Run** que ahora se queda siempre a la vista
+al desplazarse por bloques largos de código. En móviles se añade un pequeño
+espacio bajo el botón para que el primer renglón no quede pegado al mismo.
+
+
 Inside any `.md` file, drop raw HTML:
 
 ```html

@@ -461,4 +461,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     buildTOC(staticContent, document.getElementById('toc'));
     initWorkbenches();
   }
+  // keep the sticky header offset up to date so the Run button never slides
+  // under the fixed site header.  CSS gives a default of 7rem; this script
+  // recalculates on load/resize in case the header height changes.
+  function adjustWorkbenchOffset() {
+    const siteHdr = document.querySelector('.site-header');
+    if (!siteHdr) return;
+    const h = siteHdr.getBoundingClientRect().height;
+    document.querySelectorAll('.workbench-header').forEach(hdr => {
+      hdr.style.top = h + 'px';
+    });
+  }
+  window.addEventListener('resize', adjustWorkbenchOffset);
+  adjustWorkbenchOffset();
 });

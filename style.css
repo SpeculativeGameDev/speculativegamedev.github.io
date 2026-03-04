@@ -422,14 +422,25 @@ pre code {
   border: 1px solid var(--grey-mid);
   border-top: 3px solid var(--yellow);
   margin: 2em 0;
+  position: relative; /* for any absolutely positioned children */
 }
 
+/* keep the header visible while scrolling through a long block of code
+   and always keep the Run button on the right edge.  the `top` offset
+   pushes the sticky header down below the fixed site header; it mirrors
+   the padding applied to `.main-content` so the workbench never slips
+   underneath the navigation. */
 .workbench-header {
+  position: sticky;
+  top: 7rem; /* match .main-content padding-top so the header appears
+                 just below the site header when it sticks */
+  z-index: 10;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--grey-mid);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: var(--grey); /* ensure it covers code when sticking */
 }
 
 .workbench-label {
@@ -478,6 +489,17 @@ pre code {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   line-height: 1.6;
+  /* ensure there’s always a little breathing room below the sticky header
+     so the first line of code is never obscured when scrolling */
+  margin-top: 1.5rem;
+}
+
+/* on narrow viewports give even more space so the floating button doesn’t
+   feel cramped against the code */
+@media (max-width: 600px) {
+  .workbench-editor {
+    margin-top: 2.5rem;
+  }
 }
 
 .workbench-editor .CodeMirror {
