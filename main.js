@@ -474,6 +474,21 @@ async function initWorkbenches() {
     cmContainer.className = 'workbench-editor';
     code.parentNode.replaceChild(cmContainer, code);
 
+    // Create input field for Python input() function
+    const inputContainer = document.createElement('div');
+    inputContainer.className = 'workbench-input-container';
+    inputContainer.style.display = 'none';
+    const inputField = document.createElement('input');
+    inputField.type = 'text';
+    inputField.className = 'workbench-input-field';
+    inputField.placeholder = 'Enter input...';
+    const inputPrompt = document.createElement('span');
+    inputPrompt.className = 'workbench-input-prompt';
+    inputPrompt.textContent = '> ';
+    inputContainer.appendChild(inputPrompt);
+    inputContainer.appendChild(inputField);
+    output.parentNode.insertBefore(inputContainer, output.nextSibling);
+
     // Initialize CodeMirror with Tab support for indentation
     const editor = CodeMirror(cmContainer, {
       value: initialCode,
@@ -546,6 +561,60 @@ async function initWorkbenches() {
 
         btn.textContent = 'Running\u2026';
         py.runPython('import sys, io\n_cap = io.StringIO()\nsys.stdout = _cap');
+        
+        // Set up input field for Python input() function
+        inputContainer.style.display = 'none';
+        inputField.value = '';
+        window._workbenchInputValue = null;
+        window._workbenchInputReady = false;
+        
+        // Handle Enter key in input field
+        inputField.onkeypress = (e) => {
+          if (e.key === 'Enter') {
+            window._workbenchInputValue = inputField.value;
+            window._workbenchInputReady = true;
+            inputField.value = '';
+          }
+        };
+        
+        // Replace the built-in input() with a version that uses the input container
+        py.runPython(`
+import builtins
+import js
+import time
+
+def _workbench_input(prompt=''):
+    if prompt:
+        print(prompt, end='', flush=True)
+    
+    # Show the input field in JavaScript
+    js.window._workbenchInputReady = False
+    js.window._workbenchInputValue = None
+    js.window._showWorkbenchInput()
+    
+    # Wait for input (polling with sleep to allow JS events to process)
+    while not js.window._workbenchInputReady:
+        time.sleep(0.05)
+    
+    result = str(js.window._workbenchInputValue or '')
+    print(result)  # Echo the input
+    js.window._hideWorkbenchInput()
+    
+    return result
+
+builtins.input = _workbench_input
+`);
+        
+        // Functions for showing/hiding the input container
+        window._showWorkbenchInput = () => {
+          inputContainer.style.display = 'flex';
+          inputField.focus();
+        };
+        
+        window._hideWorkbenchInput = () => {
+          inputContainer.style.display = 'none';
+        };
+        
         try {
           py.runPython(src);
           const out = py.runPython('_cap.getvalue()');
@@ -556,6 +625,10 @@ async function initWorkbenches() {
           output.className = 'workbench-output error';
         } finally {
           py.runPython('sys.stdout = sys.__stdout__');
+          inputContainer.style.display = 'none';
+          inputField.onkeypress = null;
+          window._showWorkbenchInput = null;
+          window._hideWorkbenchInput = null;
         }
       } catch (e) {
         output.textContent = 'Error: ' + e.message;

@@ -527,6 +527,42 @@ pre code {
 .workbench-output.has-output { color: var(--text); }
 .workbench-output.error { color: #ff6b6b; }
 
+/* Input field for Python input() function */
+.workbench-input-container {
+  display: flex;
+  flex-direction: row;
+  padding: 1rem;
+  border-top: 1px solid var(--grey-mid);
+  background: var(--grey-mid);
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.workbench-input-prompt {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--yellow);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.workbench-input-field {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--grey);
+  background: var(--grey);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  outline: none;
+  border-radius: 2px;
+}
+
+.workbench-input-field:focus {
+  border-color: var(--yellow);
+  box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.2);
+}
+
 /* ============================================
    FOOTER
    ============================================ */
