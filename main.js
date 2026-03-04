@@ -4,6 +4,8 @@
 const SITE_CONFIG = {
   // Logseq [[links]] point to GitHub blob view of the source repo
   logseqGithubBlobBase: 'https://github.com/SpeculativeGameDev/CG/blob/main/Documents/logseq/',
+  // human-friendly site name used in <title> constructions
+  siteTitle: 'Recachita Games',
 };
 
 /* ============================================
@@ -246,14 +248,15 @@ async function loadMarkdown() {
 
     // Set page title
     const titleEl = document.querySelector('.post-title');
+    const suffix = SITE_CONFIG.siteTitle ? ' \u2014 ' + SITE_CONFIG.siteTitle : '';
     if (title) {
       if (titleEl) titleEl.textContent = title;
-      document.title = title + ' \u2014 Sith';
+      document.title = title + suffix;
     } else {
       const h1 = el.querySelector('h1');
       if (h1) {
         if (titleEl) titleEl.textContent = h1.textContent;
-        document.title = h1.textContent + ' \u2014 Sith';
+        document.title = h1.textContent + suffix;
         h1.remove();
       }
     }
