@@ -465,7 +465,6 @@ async function loadCodeMirror() {
    CODEMIRROR WORKBENCHES
    ============================================ */
 // keep a global record of packages we've asked pyodide to load
-const pyodidePackagesLoaded = new Set();
 
 async function initWorkbenches() {
   const workbenches = document.querySelectorAll('.workbench');
